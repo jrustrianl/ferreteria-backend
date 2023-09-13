@@ -6,7 +6,12 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ferreteria_backend.settings')
+    # If WEBSITE_HOSTNAME is defined as an environment variable, then we're running on Azure App Service
+
+    # When running on Azure App Service you should use the production settings.
+    settings_module = "ferreteria_backend.production" if 'WEBSITE_HOSTNAME' in os.environ else 'ferreteria_backend.settings'
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
