@@ -38,7 +38,7 @@ DATABASES = {
         'PASSWORD': conn_str_params['password'],
         'PORT': '3306',
         'OPTIONS': {
-            'ssl': {'ca': '/var/ssl/DigiCertGlobalRootCA.crt.pem'}
+            'ssl': {'ca': '/home/ssl/DigiCertGlobalRootCA.crt.pem'}
         },
     }
 }
