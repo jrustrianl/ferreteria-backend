@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password, check_password
 
-from django.db import IntegrityError
+from django.db import IntegrityError, DataError
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
@@ -32,6 +32,9 @@ class ClienteViewSet(viewsets.ViewSet):
                 new_cliente = Cliente.objects.create(nombre=request.data['nombre'], email=request.data['email'], password = hashed_password, telefono=request.data['telefono'], fecha_nacimiento=request.data['fecha_nacimiento'])
             except IntegrityError as integrity_error:
                 content = {'message': str(integrity_error)}
+                return Response(content, status=status.HTTP_404_NOT_FOUND)
+            except DataError as data_error:
+                content = {'message': str(data_error)}
                 return Response(content, status=status.HTTP_404_NOT_FOUND)
 
             cliente_serializer = ClienteSerializer(new_cliente, many=False)
