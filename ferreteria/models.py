@@ -108,19 +108,15 @@ class Cliente(models.Model):
 
     nombre = models.CharField(max_length=40)
     email = models.CharField(verbose_name="correo electrónico", max_length=40, unique=True)
-    password = models.CharField(verbose_name="contraseña", max_length=40)
+    password = models.CharField(verbose_name="contraseña", max_length=255)
     telefono = models.CharField(max_length=12)
     fecha_nacimiento = models.DateField(verbose_name="fecha de nacimiento")
-    subtotal_carrito = models.FloatField()
+    subtotal_carrito = models.FloatField(default=0)
     estado = models.SmallIntegerField(choices=ESTADO_CHOICES, default=0)
     carrito = models.ManyToManyField(Producto, related_name='carritos', through='DetalleCarrito')
 
     def __str__(self):
         return self.nombre
-    
-    def save(self, *args, **kwargs):
-        self.password = make_password(self.password)
-        super(Cliente, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = "clientes"
