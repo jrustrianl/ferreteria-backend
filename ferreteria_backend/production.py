@@ -25,6 +25,21 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.azure_storage.AzureStorage",
+        "OPTIONS":{
+            "account_name": os.environ['AZURE_ACCOUNT_NAME'],
+            "account_key": os.environ['AZURE_ACCOUNT_KEY'],
+            "custom_domain": f'{os.environ["AZURE_ACCOUNT_NAME"]}.blob.core.windows.net',
+            "azure_container": os.environ['AZURE_CONTAINER'],
+        }
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
