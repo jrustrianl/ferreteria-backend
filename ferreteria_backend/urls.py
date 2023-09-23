@@ -10,6 +10,10 @@ from ferreteria import views
 router = routers.DefaultRouter()
 router.register(r'cliente', views.ClienteViewSet, basename='Cliente')
 router.register(r'login', views.LoginViewSet, basename='Login')
+router.register(r'home', views.HomeViewSet, basename='Home')
+router.register(r'categoria', views.CategoriaViewSet, basename='Categoria')
+router.register(r'marca', views.MarcaViewSet, basename='Marca')
+router.register(r'producto', views.ProductoViewSet, basename='Producto')
 
 urlpatterns = [
     #path("ferreteria/", include("ferreteria.urls")),

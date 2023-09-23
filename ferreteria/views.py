@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from .models import Cliente
-from .serializers import ClienteSerializer, ClienteAuthSerializer
+from .models import Cliente, Producto, Categoria, Marca
+from .serializers import ClienteSerializer, ClienteAuthSerializer, MarcaSerializer, CategoriaSerializer, ProductoThumbnailSerializer, ProductoAloneSerializer, ProductoDestacadoSerializer
 
 class ClienteViewSet(viewsets.ViewSet):
     authentication_classes = []
@@ -133,3 +133,72 @@ class LoginViewSet(viewsets.ViewSet):
         else:
             content = {'message': 'Datos incompletos'}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+class HomeViewSet(viewsets.ViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    def list(self, request):
+        
+        productos_destacados = Producto.objects.filter(imagen_destacada__isnull=False, destacado=True, estado=0)
+        productos_mas_vendidos = Producto.objects.filter(mas_vendido=True, estado=0)
+        categorias = Categoria.objects.all().order_by('nombre')
+        marcas = Marca.objects.all().order_by('nombre')
+        
+        content = {'productos_destacados': ProductoDestacadoSerializer(productos_destacados, many=True, context={"request": request}).data, 'productos_mas_vendidos' : ProductoThumbnailSerializer(productos_mas_vendidos, many=True, context={"request": request}).data, 'categorias' : CategoriaSerializer(categorias, many=True, context={"request": request}).data, 'marcas' : MarcaSerializer(marcas, many=True, context={"request": request}).data}
+        return Response(content, status=status.HTTP_200_OK)
+    
+class CategoriaViewSet(viewsets.ViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    def list(self, request):
+        categorias = Categoria.objects.all().order_by('nombre')
+        content = CategoriaSerializer(categorias, many=True, context={"request": request})
+        return Response(content.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk=None):
+        aux_categoria = None
+        try:
+            aux_categoria = Categoria.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            content = {'message': 'No existe categoria'}
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = CategoriaSerializer(aux_categoria, many=False, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class MarcaViewSet(viewsets.ViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    def list(self, request):
+        marcas = Marca.objects.all().order_by('nombre')
+        content = MarcaSerializer(marcas, many=True, context={"request": request})
+        return Response(content.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk=None):
+        aux_marca = None
+        try:
+            aux_marca = Marca.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            content = {'message': 'No existe marca'}
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = MarcaSerializer(aux_marca, many=False, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ProductoViewSet(viewsets.ViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    def retrieve(self, request, pk=None):
+        aux_producto = None
+        try:
+            aux_producto = Producto.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            content = {'message': 'No existe producto'}
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ProductoAloneSerializer(aux_producto, many=False, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

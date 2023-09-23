@@ -14,6 +14,7 @@ class UsuarioAdmin(models.Model):
 class Marca(models.Model):
     nombre = models.CharField(max_length=40)
     descripcion = models.CharField(max_length=255)
+    imagen_destacada = models.ImageField(max_length=255, upload_to="MARCAS", null=True)
     icono = models.ImageField(max_length=255, upload_to="MARCAS", null=True)
 
     def __str__(self):
@@ -25,6 +26,7 @@ class Marca(models.Model):
 class Categoria(models.Model):
     nombre = models.CharField(max_length=40)
     descripcion = models.CharField(max_length=255)
+    imagen_destacada = models.ImageField(max_length=255, upload_to="CATEGORIAS", null=True)
     icono = models.ImageField(max_length=255, upload_to="CATEGORIAS", null=True)
 
     def __str__(self):
@@ -43,7 +45,11 @@ class Producto(models.Model):
 
     nombre = models.CharField(max_length=40)
     descripcion = models.TextField()
+    miniatura = models.ImageField(max_length=255, upload_to="PRODUCTOS", null=True, blank=True)
     imagen = models.ImageField(max_length=255, upload_to="PRODUCTOS")
+    imagen_destacada = models.ImageField(max_length=255, upload_to="PRODUCTOS", null=True, blank=True)
+    destacado = models.BooleanField(default=False)
+    mas_vendido = models.BooleanField(default=False)
     existencia = models.IntegerField()
     alerta_existencia = models.IntegerField(default=10)
     precio = models.FloatField()
