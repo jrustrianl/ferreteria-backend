@@ -14,9 +14,17 @@ router.register(r'home', views.HomeViewSet, basename='Home')
 router.register(r'categoria', views.CategoriaViewSet, basename='Categoria')
 router.register(r'marca', views.MarcaViewSet, basename='Marca')
 router.register(r'producto', views.ProductoViewSet, basename='Producto')
+router.register(r'search', views.ProductoSearchViewSet, basename='ProductoSearch')
+router.register(r'carrito', views.CarritoViewSet, basename='Carrito')
+router.register(r'ubicacion', views.UbicacionViewSet, basename='Ubicacion')
+router.register(r'card-checkout', views.CardCheckoutViewSet, basename='CardCheckout')
+router.register(r'pedido', views.PedidoViewSet, basename='Pedido')
+router.register(r'tipopago', views.TipoPagoViewSet, basename='TipoPago')
+router.register(r'tipoenvio', views.TipoEnvioViewSet, basename='TipoEnvio')
 
 urlpatterns = [
-    #path("ferreteria/", include("ferreteria.urls")),
+    path('admin/ferreteria/reciboDePedido/<int:pk>/', views.reciboDePedidoPk, name="reciboDePedidoPk"),
+    path("ferreteria/", include("ferreteria.urls")),
     path('api-auth/', include(router.urls)),
     path("admin/", admin.site.urls),
     re_path(r'^$', RedirectView.as_view(url='/admin'))

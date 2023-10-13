@@ -1,9 +1,37 @@
 from django.db import models
+from django.db.models import Lookup
+from django.db.models.fields import Field
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.hashers import make_password
+
+
+# Lookups
+class LowerSearch(Lookup):
+    lookup_name = 'lwsearch'
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        if not params[0] is None:
+            params[0] = '%' + params[0] + '%'
+        return 'LOWER(%s) LIKE %s' % (lhs, rhs), params
+
+Field.register_lookup(LowerSearch)
+
+class EmpleadoProxy(User):
+    class Meta:
+        proxy = True
+        verbose_name = "Empleado"
+        verbose_name_plural = "Empleados"
+
+@receiver(post_save, sender=EmpleadoProxy)
+def empleadoproxy_post_save(sender, instance, created, **kwargs):
+    if created:
+        group = Group.objects.get(name="Empleado")
+        instance.groups.add(group)
 
 class UsuarioAdmin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -43,7 +71,7 @@ class Producto(models.Model):
         (2, 'Eliminado')
     ]
 
-    nombre = models.CharField(max_length=40)
+    nombre = models.CharField(max_length=150)
     descripcion = models.TextField()
     miniatura = models.ImageField(max_length=255, upload_to="PRODUCTOS", null=True, blank=True)
     imagen = models.ImageField(max_length=255, upload_to="PRODUCTOS")
@@ -53,10 +81,11 @@ class Producto(models.Model):
     existencia = models.IntegerField()
     alerta_existencia = models.IntegerField(default=10)
     precio = models.FloatField()
-    descuento = models.FloatField()
+    descuento = models.FloatField(null=True, blank=True)
     estado = models.SmallIntegerField(choices=ESTADO_CHOICES, default=0)
     marca = models.ForeignKey(Marca, related_name="productos", on_delete=models.SET_NULL, null=True)
     categorias = models.ManyToManyField(Categoria, blank=True)
+    stripe_id = models.CharField(max_length=255, unique=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -158,6 +187,7 @@ class TipoEnvio(models.Model):
     nombre = models.CharField(max_length=40)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     monto = models.FloatField()
+    stripe_id = models.CharField(max_length=255, unique=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -194,8 +224,9 @@ class Pedido(models.Model):
     ESTADO_CHOICES = [
         (0, 'Recibido'),
         (1, 'Procesando'),
-        (2, 'Enviado'),
-        (3, 'Entregado')
+        (2, 'Pendiente de pago'),
+        (3, 'Enviado'),
+        (4, 'Entregado')
     ]
 
     nit = models.CharField(max_length=15, verbose_name="NIT")
@@ -205,9 +236,9 @@ class Pedido(models.Model):
     cliente = models.ForeignKey(Cliente, related_name="pedidos_cliente", on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(Ubicacion, related_name="pedidos_ubicacion", on_delete=models.CASCADE)
     tipopago = models.ForeignKey(TipoPago, related_name="pedidos_tipopago", on_delete=models.CASCADE)
-    tipoenvio = models.ForeignKey(TipoEnvio, related_name="pedidos_tipoenvio", on_delete=models.CASCADE)
+    tipoenvio = models.ForeignKey(TipoEnvio, related_name="pedidos_tipoenvio", on_delete=models.CASCADE, null=True, blank=True)
     subtotal = models.FloatField()
-    descuento = models.FloatField()
+    descuento = models.FloatField(null=True, blank=True)
     total = models.FloatField()
     estado = models.SmallIntegerField(choices=ESTADO_CHOICES, default=0)
     productos = models.ManyToManyField(Producto, related_name='detalle_pedido', through='DetallePedido')
@@ -242,3 +273,8 @@ class DetalleCarrito(models.Model):
     class Meta:
         verbose_name = "detalle de carrito"
         verbose_name_plural = "detalles de carritos"
+
+class UserPayment(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    payment_bool = models.BooleanField(default=False)
+    stripe_checkout_id = models.CharField(max_length=500)

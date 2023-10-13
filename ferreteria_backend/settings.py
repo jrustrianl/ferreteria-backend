@@ -145,3 +145,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STRIPE_PUBLIC_KEY = 'pk_test_51NpgNRDcRClZvkQgCo7q70r4HbAhzdkiZCsZKY3FvWksT53aTVlexxgjNhYvkNCMTEd8A6rQV61ljqqjohi02ufs00oWaqt5ZC'
+STRIPE_SECRET_KEY = 'sk_test_51NpgNRDcRClZvkQgr7qTpqh4NQiE6jd5XQIjvzQ7rYGcrwqlvb0TazALuoBISzUurTnP9mNH0HbE5DIhX4qRcMGc00WRQ3RdkC'
+REDIRECT_DOMAIN = 'http://localhost:8000/ferreteria'
