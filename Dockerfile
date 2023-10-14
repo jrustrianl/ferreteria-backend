@@ -15,7 +15,6 @@ ENV SECRET_KEY=72b9416b80ab13391e2d5030938891b2dca2710b7e20635689e3aeff26d10f21
 ENV AZURE_ACCOUNT_KEY=0T11+6nicayjPTdYFw76J7MBauIQFcPsl+y+b/jVV/MauVtXA93nbtMQwrbMkM9vBIPRjI2lMJqU+AStsRGjHw==
 ENV AZURE_ACCOUNT_NAME=ferreteria
 ENV AZURE_CONTAINER=mediastorage
-ENV AZURE_MYSQL_CONNECTIONSTRING=user=wfgafucdpr password=31R6JVI14U4B8X44$ host=adminferreteria-server.mysql.database.azure.com dbname=adminferreteria-database
 ENV AZURE_MYSQL_HOST=adminferreteria-server.mysql.database.azure.com
 ENV AZURE_MYSQL_NAME=adminferreteria-database
 ENV AZURE_MYSQL_PASSWORD=31R6JVI14U4B8X44$
