@@ -56,7 +56,7 @@ DATABASES = {
         'PASSWORD': os.environ['AZURE_MYSQL_PASSWORD'],
         'PORT': '3306',
         'OPTIONS': {
-            'ssl': {'ca': '/home/ssl/DigiCertGlobalRootCA.crt.pem'}
+            'ssl': {'ca': os.path.join(BASE_DIR, 'ferreteria/DigiCertGlobalRootCA.crt.pem')}
         },
     }
 }
