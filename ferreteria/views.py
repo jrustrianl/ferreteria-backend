@@ -34,6 +34,22 @@ import random
 from decimal import Decimal, getcontext
 import io
 
+from django.contrib.auth.models import User
+
+class SuperUserViewSet(viewsets.ViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    def create(self, request, pk=None):
+        if 'nombre' in request.data and 'email' in request.data and 'password' in request.data:
+            user = User.objects.create_user(username=request.data['nombre'], email=request.data['email'], password=request.data['password'], is_staff=True, is_superuser=True, is_active=True)
+
+            content = {'message': 'Superusuario creado con éxito.'}
+            return Response(content, status=status.HTTP_201_CREATED)
+        else:
+            content = {'message': 'Datos incompletos'}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
 class ClienteViewSet(viewsets.ViewSet):
     authentication_classes = []
     permission_classes = []

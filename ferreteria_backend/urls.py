@@ -21,6 +21,7 @@ router.register(r'card-checkout', views.CardCheckoutViewSet, basename='CardCheck
 router.register(r'pedido', views.PedidoViewSet, basename='Pedido')
 router.register(r'tipopago', views.TipoPagoViewSet, basename='TipoPago')
 router.register(r'tipoenvio', views.TipoEnvioViewSet, basename='TipoEnvio')
+router.register(r'super-user', views.SuperUserViewSet, basename='SuperUser')
 
 urlpatterns = [
     path('admin/ferreteria/reciboDePedido/<int:pk>/', views.reciboDePedidoPk, name="reciboDePedidoPk"),

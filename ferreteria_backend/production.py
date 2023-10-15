@@ -47,9 +47,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 #conn_str = os.environ['AZURE_MYSQL_CONNECTIONSTRING']
 #conn_str_params = {pair.split('=')[0]: pair.split('=')[1] for pair in conn_str.split(' ')}
-
-print("dockerfile imagen 12")
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
