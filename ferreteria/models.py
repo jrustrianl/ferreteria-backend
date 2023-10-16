@@ -41,7 +41,7 @@ class UsuarioAdmin(models.Model):
 
 class Marca(models.Model):
     nombre = models.CharField(max_length=40)
-    descripcion = models.CharField(max_length=255)
+    descripcion = models.CharField(max_length=255, null=True, blank=True)
     imagen_destacada = models.ImageField(max_length=255, upload_to="MARCAS", null=True, blank=True)
     icono = models.ImageField(max_length=255, upload_to="MARCAS", null=True, blank=True)
 
@@ -53,9 +53,9 @@ class Marca(models.Model):
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=40)
-    descripcion = models.CharField(max_length=255)
-    imagen_destacada = models.ImageField(max_length=255, upload_to="CATEGORIAS", null=True)
-    icono = models.ImageField(max_length=255, upload_to="CATEGORIAS", null=True)
+    descripcion = models.CharField(max_length=255, null=True, blank=True)
+    imagen_destacada = models.ImageField(max_length=255, upload_to="CATEGORIAS", null=True, blank=True)
+    icono = models.ImageField(max_length=255, upload_to="CATEGORIAS", null=True, blank=True)
 
     def __str__(self):
         return self.nombre
@@ -86,6 +86,7 @@ class Producto(models.Model):
     marca = models.ForeignKey(Marca, related_name="productos", on_delete=models.SET_NULL, null=True)
     categorias = models.ManyToManyField(Categoria)
     stripe_id = models.CharField(max_length=255, unique=True, null=True)
+    stripe_id_descuento = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.nombre
