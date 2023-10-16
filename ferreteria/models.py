@@ -158,12 +158,19 @@ class Cliente(models.Model):
         verbose_name_plural = "clientes"
 
 class Ubicacion(models.Model):
+    
+    ESTADO_CHOICES = [
+        (0, 'Disponible'),
+        (1, 'Eliminado')
+    ]
+
     nombre = models.CharField(max_length=40)
     direccion = models.CharField(max_length=255)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     telefono = models.CharField(max_length=12)
     nombre_recibe = models.CharField(verbose_name="nombre quien recibe", max_length=40, null=True, blank=True)
     cliente = models.ForeignKey(Cliente, related_name='ubicaciones', on_delete=models.CASCADE)
+    estado = models.SmallIntegerField(choices=ESTADO_CHOICES, default=0)
 
     def __str__(self):
         return self.nombre

@@ -357,7 +357,7 @@ class UbicacionViewSet(viewsets.ViewSet):
         if cliente is not None:
             try:
                 aux_cliente = Cliente.objects.get(pk=cliente)
-                ubicaciones = Ubicacion.objects.filter(cliente=aux_cliente)
+                ubicaciones = Ubicacion.objects.filter(cliente=aux_cliente, estado=0)
                 serializer = UbicacionSerializer(ubicaciones, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
@@ -369,7 +369,7 @@ class UbicacionViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         try:
-            ubicacion = Ubicacion.objects.get(pk=pk)
+            ubicacion = Ubicacion.objects.get(pk=pk, estado=0)
             serializer = UbicacionSerializer(ubicacion, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
@@ -403,7 +403,7 @@ class UbicacionViewSet(viewsets.ViewSet):
             
             aux_cliente = Cliente.objects.get(pk=request.data['userid'])
             try:
-                ubicacion = Ubicacion.objects.get(pk=pk, cliente=aux_cliente)
+                ubicacion = Ubicacion.objects.get(pk=pk, cliente=aux_cliente, estado=0)
             except ObjectDoesNotExist:
                 content = {'message': 'No existe ubicacion'}
                 return Response(content, status=status.HTTP_404_NOT_FOUND)
@@ -435,7 +435,8 @@ class UbicacionViewSet(viewsets.ViewSet):
         aux_cliente = Cliente.objects.get(pk=request.data['userid'])
         try:
             ubicacion = Ubicacion.objects.get(pk=pk, cliente=aux_cliente)
-            ubicacion.delete()
+            ubicacion.estado = 1
+            ubicacion.save()
             serializer = UbicacionSerializer(ubicacion, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
@@ -542,7 +543,7 @@ class PedidoViewSet(viewsets.ViewSet):
             arr_productos = json.loads(request.data['productos'])
             for producto in arr_productos:
                 pd = Producto.objects.get(pk=producto['id'])
-                subtotal += pd.precio * producto['cantidad']
+                subtotal += (pd.descuento if pd.descuento is not None else pd.precio) * producto['cantidad']
             total = subtotal
             if tipoenvio is not None:
                 total += tipoenvio.monto
@@ -551,7 +552,8 @@ class PedidoViewSet(viewsets.ViewSet):
 
             for producto in arr_productos:
                 pd = Producto.objects.get(pk=producto['id'])
-                DetallePedido.objects.create(cantidad=producto['cantidad'], precio=pd.precio, pedido=new_pedido, producto=pd)
+                price = (pd.descuento if pd.descuento is not None else pd.precio)
+                DetallePedido.objects.create(cantidad=producto['cantidad'], precio=price, pedido=new_pedido, producto=pd)
 
             pedido_serializer = PedidoSerializer(new_pedido, many=False)
             return Response(pedido_serializer.data, status=status.HTTP_201_CREATED)

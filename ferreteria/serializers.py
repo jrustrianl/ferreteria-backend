@@ -77,9 +77,13 @@ class UbicacionSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre', 'direccion', 'descripcion', 'telefono', 'nombre_recibe']
 
 class ProductoStripeSerializer(serializers.ModelSerializer):
+    id_stripe = serializers.SerializerMethodField()
     class Meta:
         model = Producto
-        fields = ['nombre', 'stripe_id']
+        fields = ['nombre', 'id_stripe']
+
+    def get_id_stripe(self, instance):
+        return instance.stripe_id_descuento if instance.descuento is not None else instance.stripe_id
 
 class DetallePedidoSerializer(serializers.ModelSerializer):
     producto = ProductoStripeSerializer()
