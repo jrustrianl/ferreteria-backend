@@ -60,3 +60,5 @@ DATABASES = {
         },
     }
 }
+
+REDIRECT_DOMAIN = 'https://ferreteria-admin.azurewebsites.net/ferreteria'

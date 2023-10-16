@@ -600,6 +600,7 @@ def payment_successful(request):
     aux_pedido.total = aux_pedido.subtotal + tipoenvio.monto
     aux_pedido.save()
     UserPayment.objects.create(pedido=aux_pedido, payment_bool=True, stripe_checkout_id=checkout_session_id)
+    
     #Enviar a ruta success de FRONTEND
     return render(request, 'payment_successful.html')
         

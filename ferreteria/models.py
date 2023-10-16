@@ -83,7 +83,7 @@ class Producto(models.Model):
     precio = models.FloatField()
     descuento = models.FloatField(null=True, blank=True)
     estado = models.SmallIntegerField(choices=ESTADO_CHOICES, default=0)
-    marca = models.ForeignKey(Marca, related_name="productos", on_delete=models.SET_NULL, null=True)
+    marca = models.ForeignKey(Marca, related_name="productos", on_delete=models.SET_NULL, null=True, blank=True)
     categorias = models.ManyToManyField(Categoria)
     stripe_id = models.CharField(max_length=255, unique=True, null=True)
     stripe_id_descuento = models.CharField(max_length=255, unique=True, null=True, blank=True)
