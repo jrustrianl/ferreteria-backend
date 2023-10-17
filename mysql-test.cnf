@@ -1,0 +1,2 @@
+bind-address=localhost
+socket=/var/lib/mysql/mysql.sock
