@@ -1,17 +1,14 @@
 import random, string
 
+from django import forms
+from django.shortcuts import redirect
 from django.contrib import admin
-#from django.contrib import messages
-
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
 
-from .models import UsuarioAdmin, Producto, MetaProducto, Marca, Categoria, Cliente, Pedido, TipoEnvio, TipoMovimiento, TipoPago, Movimiento, EmpleadoProxy, DetalleCarrito, DetallePedido, UserPayment
-
-def randomPass(lenval):
-    letters = string.ascii_letters
-    return ''.join(random.choice(letters) for i in range(lenval))
+from .models import UsuarioAdmin, Producto, MetaProducto, Marca, Categoria, Cliente, Pedido, TipoEnvio, TipoMovimiento, TipoPago, Movimiento, EmpleadoProxy, DetalleCarrito, DetallePedido, DetalleMovimiento, UserPayment
 
 class UsuarioAdminInline(admin.StackedInline):
     model = UsuarioAdmin
@@ -45,9 +42,50 @@ class ProductoAdminInline(admin.StackedInline):
     verbose_name_plural = 'metadatos'
     extra = 0
 
+class NewProductoForm(forms.ModelForm):
+
+    inicio_existencia = forms.IntegerField()
+
+    def save(self, commit=True):
+        primer_existencia = self.cleaned_data.get('inicio_existencia', None)
+        self.instance.existencia = primer_existencia
+        return super(NewProductoForm, self).save(commit=commit)
+
+    class Meta:
+        model = Producto
+        exclude = ["existencia"]
+
+def alerta_baja_existencia(obj):
+    return "Sí" if obj.existencia <= obj.alerta_existencia else "No"
+
+alerta_baja_existencia.short_description = "Baja existencia"
+alerta_baja_existencia.admin_order_field = "existencia"
+
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'existencia', 'estado')
+    add_form = NewProductoForm
+    exclude = ["existencia"]
+    list_display = ('nombre', 'existencia', 'estado', alerta_baja_existencia)
     inlines = (ProductoAdminInline, )
+
+    def get_queryset(self, request):
+        qs = super(ProductoAdmin, self).get_queryset(request)
+        return qs.all().order_by('nombre')
+    
+    def get_form(self, request, obj=None, **kwargs):
+        defaults = {}
+        if obj is None:
+            defaults["form"] = self.add_form
+        defaults.update(kwargs)
+        form = super(ProductoAdmin, self).get_form(request, obj, **defaults)
+        form.current_user = request.user
+        return form
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        tipo_mov = TipoMovimiento.objects.get(nombre__exact="Nuevo producto")
+        movimiento = Movimiento.objects.create(usuario=request.user, tipomovimiento=tipo_mov, descripcion="Se añadió un nuevo producto (" + obj.nombre + ") al catálogo.")
+        DetalleMovimiento.objects.create(cantidad=obj.existencia, movimiento=movimiento, producto=obj)
+        messages.success(request, 'El producto se añadió correctamente.')
+        return redirect('/admin/ferreteria/producto')
 
 def descargar_recibo(obj):
     return format_html('<a target="blank" href="{0}{1}">{2}</a></th>', '/admin/ferreteria/reciboDePedido/', obj.id, 'Descargar')
@@ -61,6 +99,72 @@ class PedidoAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super(PedidoAdmin, self).get_queryset(request)
         return qs.all().order_by('-fecha', '-id')
+    
+class ClienteAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'email', 'telefono', 'estado')
+    search_fields = ('nombre', 'email')
+
+    def get_queryset(self, request):
+        qs = super(ClienteAdmin, self).get_queryset(request)
+        return qs.all().order_by('estado', 'nombre')
+    
+class MarcaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'descripcion', 'icono')
+    search_fields = ('nombre',)
+
+    def get_queryset(self, request):
+        qs = super(MarcaAdmin, self).get_queryset(request)
+        return qs.all().order_by('nombre')
+    
+class CategoriaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'descripcion', 'icono')
+    search_fields = ('nombre',)
+
+    def get_queryset(self, request):
+        qs = super(CategoriaAdmin, self).get_queryset(request)
+        return qs.all().order_by('nombre')
+
+class DetalleMovimientoForm(forms.ModelForm):
+    class Meta:
+        model = DetalleMovimiento
+        fields = '__all__'
+
+    def clean(self):
+        mov = self.cleaned_data.get('movimiento')
+        print(mov.tipomovimiento.nombre)
+        if mov.tipomovimiento.nombre == 'Salida de producto':
+            print("hola buenas!!")
+            prod = self.cleaned_data.get('producto')
+            print(prod.existencia)
+            if prod.existencia <= self.cleaned_data.get('cantidad'):
+                raise forms.ValidationError("Si es salida de producto, cantidad no puede ser mayor o igual que la existencia actual.")
+        return self.cleaned_data
+
+class MovimientoAdminInline(admin.StackedInline):
+    model = DetalleMovimiento
+    can_delete = False
+    verbose_name_plural = 'detalles'
+    extra = 0
+    form = DetalleMovimientoForm
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "producto":
+            kwargs["queryset"] = Producto.objects.all().order_by('nombre')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+class MovimientoAdmin(admin.ModelAdmin):
+    fields = ('descripcion', 'tipomovimiento')
+    list_display = ('tipomovimiento', 'usuario', 'fecha')
+    search_fields = ('fecha',)
+    inlines = (MovimientoAdminInline, )
+
+    def get_queryset(self, request):
+        qs = super(MovimientoAdmin, self).get_queryset(request)
+        return qs.all().order_by('-fecha')
+    
+    def save_model(self, request, obj, form, change):
+        obj.usuario = request.user
+        super().save_model(request, obj, form, change)
 
 admin.site.site_header = 'Ferretería EL ESFUERZO'
 admin.site.site_title = 'Ferretería'
@@ -68,14 +172,15 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Producto, ProductoAdmin)
 admin.site.register(MetaProducto)
-admin.site.register(Marca)
-admin.site.register(Categoria)
-admin.site.register(Cliente)
+admin.site.register(Marca, MarcaAdmin)
+admin.site.register(Categoria, CategoriaAdmin)
+admin.site.register(Cliente, ClienteAdmin)
 admin.site.register(Pedido, PedidoAdmin)
 admin.site.register(TipoEnvio)
 admin.site.register(TipoMovimiento)
 admin.site.register(TipoPago)
-admin.site.register(Movimiento)
+admin.site.register(Movimiento, MovimientoAdmin)
+admin.site.register(DetalleMovimiento)
 admin.site.register(EmpleadoProxy, EmpleadoProxyAdmin)
 
 admin.site.register(DetalleCarrito)

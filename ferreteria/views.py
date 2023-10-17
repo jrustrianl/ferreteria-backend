@@ -57,7 +57,7 @@ class ClienteViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         aux_cliente = None
         try:
-            aux_cliente = Cliente.objects.get(pk=pk)
+            aux_cliente = Cliente.objects.get(pk=pk, estado=0)
         except ObjectDoesNotExist:
             content = {'message': 'No existe cliente'}
             return Response(content, status=status.HTTP_404_NOT_FOUND)
@@ -156,7 +156,7 @@ class LoginViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         aux_cliente = None
         try:
-            aux_cliente = Cliente.objects.get(pk=pk)
+            aux_cliente = Cliente.objects.get(pk=pk, estado=0)
         except ObjectDoesNotExist:
             content = {'message': 'No existe cliente'}
             return Response(content, status=status.HTTP_404_NOT_FOUND)
@@ -164,12 +164,12 @@ class LoginViewSet(viewsets.ViewSet):
         serializer = ClienteAuthSerializer(aux_cliente, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def create(self, request, pk=None):
+    def create(self, request):
         if 'email' in request.data and 'password' in request.data:
             
             aux_cliente = None
             try:
-                aux_cliente = Cliente.objects.get(email=request.data['email'])
+                aux_cliente = Cliente.objects.get(email=request.data['email'], estado=0)
             except ObjectDoesNotExist:
                 content = {'message': 'Usuario/contraseña incorrectos'}
                 return Response(content, status=status.HTTP_404_NOT_FOUND)
@@ -316,6 +316,10 @@ class CarritoViewSet(viewsets.ViewSet):
                 return Response(content, status=status.HTTP_404_NOT_FOUND)
             
             aux_cliente = Cliente.objects.get(pk=request.data['userid'])
+
+            if int(request.data['cantidad']) > aux_producto.existencia:
+                content = {'message': 'No se cuentan con existencias para el producto: ' + aux_producto.nombre}
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
             
             try:
                 detalle_carrito = DetalleCarrito.objects.get(producto=aux_producto, cliente=aux_cliente)
@@ -543,6 +547,9 @@ class PedidoViewSet(viewsets.ViewSet):
             arr_productos = json.loads(request.data['productos'])
             for producto in arr_productos:
                 pd = Producto.objects.get(pk=producto['id'])
+                if producto['cantidad'] > pd.existencia:
+                    content = {'message': 'No se cuentan con existencias para el producto: ' + pd.nombre}
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
                 subtotal += (pd.descuento if pd.descuento is not None else pd.precio) * producto['cantidad']
             total = subtotal
             if tipoenvio is not None:

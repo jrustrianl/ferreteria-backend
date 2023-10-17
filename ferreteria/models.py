@@ -106,21 +106,17 @@ class TipoMovimiento(models.Model):
         verbose_name_plural = "tipos de movimiento"
 
 class Movimiento(models.Model):
-
-    ESTADO_CHOICES = [
-        (0, 'Completado'),
-        (1, 'En espera'),
-        (2, 'Anulado')
-    ]
-
-    fecha = models.DateField()
-    estado = models.SmallIntegerField(choices=ESTADO_CHOICES, default=0)
+    descripcion = models.TextField()
+    fecha = models.DateField(auto_now_add=True)
     usuario = models.ForeignKey(User, related_name="movimientos_usuario", on_delete=models.CASCADE)
-    tipomovimiento = models.ForeignKey(TipoMovimiento, related_name="movimientos_tipo", on_delete=models.CASCADE)
+    tipomovimiento = models.ForeignKey(TipoMovimiento, related_name="movimientos_tipo", on_delete=models.CASCADE, verbose_name="Tipo de movimiento")
     productos = models.ManyToManyField(Producto, related_name='detalle_movimiento', through='DetalleMovimiento')
 
     class Meta:
         verbose_name_plural = "movimientos"
+
+    def __str__(self):
+        return str(self.tipomovimiento.nombre)
 
 class DetalleMovimiento(models.Model):
     cantidad = models.IntegerField()
@@ -133,6 +129,16 @@ class DetalleMovimiento(models.Model):
     class Meta:
         verbose_name = "detalle de movimiento"
         verbose_name_plural = "detalles de movimientos"
+
+@receiver(post_save, sender=DetalleMovimiento)
+def detallemovimiento_post_save(sender, instance, created, **kwargs):
+    if created:
+        if instance.movimiento.tipomovimiento.nombre == 'Entrada de producto':
+            instance.producto.existencia = instance.producto.existencia + instance.cantidad
+            instance.producto.save()
+        elif instance.movimiento.tipomovimiento.nombre == 'Salida de producto':
+            instance.producto.existencia = instance.producto.existencia - instance.cantidad
+            instance.producto.save()
 
 class Cliente(models.Model):
 
@@ -269,6 +275,12 @@ class DetallePedido(models.Model):
     class Meta:
         verbose_name = "detalle de pedido"
         verbose_name_plural = "detalles de pedidos"
+
+@receiver(post_save, sender=DetallePedido)
+def detallepedido_post_save(sender, instance, created, **kwargs):
+    if created:
+        instance.producto.existencia = instance.producto.existencia - instance.cantidad
+        instance.producto.save()
 
 class DetalleCarrito(models.Model):
     cantidad = models.IntegerField()
