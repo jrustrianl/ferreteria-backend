@@ -133,7 +133,7 @@ class MarcaAdmin(admin.ModelAdmin):
         return qs.all().order_by('nombre')
 
 def preview_icono(obj):
-    return format_html('<img style="width: 150px; height: 150px" src="{0}"/>', obj.path)
+    return format_html('<img style="width: 150px; height: 150px" src="{0}"/>', obj.icono.path)
 
 preview_icono.allow_tags = True
 class CategoriaAdmin(admin.ModelAdmin):
