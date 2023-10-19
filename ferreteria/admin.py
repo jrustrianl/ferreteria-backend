@@ -131,13 +131,9 @@ class MarcaAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super(MarcaAdmin, self).get_queryset(request)
         return qs.all().order_by('nombre')
-
-def preview_icono(obj):
-    return format_html('<img style="width: 150px; height: 150px" src="{0}"/>', obj.icono.path)
-
-preview_icono.allow_tags = True
+    
 class CategoriaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'descripcion', preview_icono)
+    list_display = ('nombre', 'descripcion', 'icono')
     search_fields = ('nombre',)
 
     def get_queryset(self, request):
