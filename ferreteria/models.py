@@ -202,6 +202,7 @@ class TipoEnvio(models.Model):
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     monto = models.FloatField()
     stripe_id = models.CharField(max_length=255, unique=True, null=True)
+    oculto = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre
@@ -240,7 +241,8 @@ class Pedido(models.Model):
         (1, 'Procesando'),
         (2, 'Pendiente de pago'),
         (3, 'Enviado'),
-        (4, 'Entregado')
+        (4, 'Entregado'),
+        (5, 'Cancelado')
     ]
 
     nit = models.CharField(max_length=15, verbose_name="NIT")

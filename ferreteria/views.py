@@ -472,14 +472,14 @@ class TipoEnvioViewSet(viewsets.ViewSet):
     permission_classes = []
 
     def list(self, request):
-        tipoenvios = TipoEnvio.objects.all()
+        tipoenvios = TipoEnvio.objects.filter(oculto=False)
         content = TipoEnvioSerializer(tipoenvios, many=True, context={"request": request})
         return Response(content.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
         aux_tipoenvio = None
         try:
-            aux_tipoenvio = TipoEnvio.objects.get(pk=pk)
+            aux_tipoenvio = TipoEnvio.objects.get(pk=pk, oculto=False)
         except ObjectDoesNotExist:
             content = {'message': 'No existe tipo de pago'}
             return Response(content, status=status.HTTP_404_NOT_FOUND)

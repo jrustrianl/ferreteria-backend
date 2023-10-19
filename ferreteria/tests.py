@@ -1,4 +1,3 @@
-from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework import status
@@ -25,16 +24,3 @@ class PedidoModelTests(APITestCase):
         self.assertEqual(Pedido.objects.count(), 1)
         self.assertEqual(Pedido.objects.get().nit, '5987245')
         self.assertEqual(Producto.objects.get().existencia, 73)
-        
-        #self.assertIs(future_question.was_published_recently(), False)
-
-    '''def test_movimiento_nuevo_producto(self):
-        cliente = Cliente(nombre="Carlos Juarez", email="cliente1@gmail.com", password="cliente1", telefono="54825613", fecha_nacimiento="1998-06-29")
-        ubicacion = Ubicacion(nombre="Oficina", direccion="21 avenida 10-25 zona 10", descripcion=None, telefono="23335332", nombre_recibe=None, userid=10)
-        tipopago = TipoPago(nombre="Efectivo", descripcion="Pago en efectivo contra entrega o en local físico")
-        tipoenvio = TipoEnvio(nombre="Envío gratis", descripcion="Envío gratuito en el perímetro de la capital. Tiempo de entrega estimado: 2 días hábiles.", monto=0.0, stripe_id="shr_1O0XlcDcRClZvkQgl7pYjJjb")
-        subtotal = 120
-        total = 120
-        pedido = Pedido(nit="5987245", nombre="Carlos Juarez", telefono="12345678", cliente=cliente, ubicacion=ubicacion, tipopago=tipopago, tipoenvio=tipoenvio, subtotal=subtotal, total=total, estado=0)
-        
-        #self.assertIs(future_question.was_published_recently(), False)'''
