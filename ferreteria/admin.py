@@ -8,7 +8,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User, Group
 from django.utils.html import format_html
 
-from .models import UsuarioAdmin, Producto, MetaProducto, Marca, Categoria, Cliente, Pedido, TipoEnvio, TipoMovimiento, TipoPago, Movimiento, EmpleadoProxy, DetalleCarrito, DetallePedido, DetalleMovimiento, UserPayment
+from .models import UsuarioAdmin, Producto, MetaProducto, Marca, Categoria, Cliente, Pedido, TipoEnvio, TipoMovimiento, TipoPago, Movimiento, EmpleadoProxy, DetalleCarrito, DetallePedido, DetalleMovimiento, UserPayment, Ubicacion
 
 class UsuarioAdminInline(admin.StackedInline):
     model = UsuarioAdmin
@@ -108,9 +108,33 @@ class DetallePedidoAdminInline(admin.StackedInline):
     verbose_name_plural = 'detalle'
     extra = 0
 
+class EmpleadoPedidoForm(forms.ModelForm):
+    nit = forms.CharField(disabled=True)
+    nombre = forms.CharField(disabled=True)
+    telefono = forms.CharField(disabled=True)
+    cliente = forms.ModelChoiceField(disabled=True, queryset=Cliente.objects.all())
+    ubicacion = forms.ModelChoiceField(disabled=True, queryset=Ubicacion.objects.all())
+    tipopago = forms.ModelChoiceField(disabled=True, queryset=TipoPago.objects.all())
+    tipoenvio = forms.ModelChoiceField(disabled=True, queryset=TipoEnvio.objects.all())
+    subtotal = forms.CharField(disabled=True)
+    total = forms.CharField(disabled=True)
+    class Meta:
+        model = Pedido
+        fields = ["estado", "nit", "nombre", "telefono", "cliente", "ubicacion", "tipopago", "tipoenvio", "subtotal", "total"]
+
 class PedidoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'fecha', 'total', 'estado', descargar_recibo)
     inlines = (DetallePedidoAdminInline,)
+    empleado_form = EmpleadoPedidoForm
+    
+    def get_form(self, request, obj=None, **kwargs):
+        defaults = {}
+        if request.user.groups.filter(name='Empleado').exists():
+            defaults["form"] = self.empleado_form
+        defaults.update(kwargs)
+        form = super(PedidoAdmin, self).get_form(request, obj, **defaults)
+        form.current_user = request.user
+        return form
 
     def get_queryset(self, request):
         qs = super(PedidoAdmin, self).get_queryset(request)
